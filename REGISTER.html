@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="lv">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Noliktava | Reģistrācija</title>
+        <link rel="stylesheet" href="CSS.css" />
+        <script type="module" src="REGISTER.js" defer></script>
+    </head>
+    <body>
+        <main class="app-shell">
+            <section class="auth-card" aria-labelledby="registerTitle">
+                <h1 id="registerTitle">Reģistrācija</h1>
+                <form id="registerForm" class="auth-form" novalidate>
+                    <label for="registerUsername">Lietotājvārds</label>
+                    <input type="text" id="registerUsername" name="username" autocomplete="username" required minlength="3" />
+                    <label for="registerPassword">Parole</label>
+                    <input type="password" id="registerPassword" name="password" autocomplete="new-password" required minlength="6" />
+                    <label for="registerRole">Loma</label>
+                    <select id="registerRole" name="role" required></select>
+                    <button type="submit">Izveidot kontu</button>
+                </form>
+                <p id="registerMessage" class="message" role="alert" hidden></p>
+                <p class="auth-link">Jau ir konts? <a href="INDEX.html">Pieslēgties</a></p>
+            </section>
+        </main>
+    </body>
+</html>

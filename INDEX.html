@@ -3,19 +3,14 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Noliktavas vadības sistēma" />
         <title>Noliktava</title>
         <link rel="stylesheet" href="CSS.css" />
         <script type="module" src="LOGIC.js" defer></script>
     </head>
     <body>
         <main class="app-shell">
-            <section id="authView" class="auth-card" aria-labelledby="pageTitle">
+            <section id="loginView" class="auth-card" aria-labelledby="pageTitle">
                 <h1 id="pageTitle">NOLIKTAVA</h1>
-                <div class="auth-tabs" role="tablist" aria-label="Autorizācija">
-                    <button class="tab-button active" id="loginTab" type="button" role="tab" aria-selected="true">Pieslēgties</button>
-                    <button class="tab-button" id="registerTab" type="button" role="tab" aria-selected="false">Reģistrēties</button>
-                </div>
                 <form id="loginForm" class="auth-form" novalidate>
                     <label for="loginUsername">Lietotājvārds</label>
                     <input type="text" id="loginUsername" name="username" autocomplete="username" required />
@@ -23,16 +18,8 @@
                     <input type="password" id="loginPassword" name="password" autocomplete="current-password" required />
                     <button type="submit">Pieslēgties</button>
                 </form>
-                <form id="registerForm" class="auth-form" hidden novalidate>
-                    <label for="registerUsername">Lietotājvārds</label>
-                    <input type="text" id="registerUsername" name="username" autocomplete="username" required minlength="3" />
-                    <label for="registerPassword">Parole</label>
-                    <input type="password" id="registerPassword" name="password" autocomplete="new-password" required minlength="6" />
-                    <label for="registerRole">Loma</label>
-                    <select id="registerRole" name="role" required></select>
-                    <button type="submit">Izveidot kontu</button>
-                </form>
-                <p id="authMessage" class="message" role="alert" hidden></p>
+                <p id="loginMessage" class="message" role="alert" hidden></p>
+                <p class="auth-link">Nav konta? <a href="REGISTER.html">Reģistrēties</a></p>
             </section>
 
             <section id="dashboard" class="dashboard" hidden aria-labelledby="dashboardTitle">
@@ -51,7 +38,6 @@
                         </div>
                         <button id="logoutButton" class="button-secondary" type="button">Iziet</button>
                     </header>
-                    <p id="dashboardMessage">Izvēlieties darbību sānu izvēlnē.</p>
                 </div>
             </section>
         </main>

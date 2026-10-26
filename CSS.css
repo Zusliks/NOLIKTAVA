@@ -9,9 +9,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .auth-card { margin: 0 auto; max-width: 420px; padding: 2rem; }
 h1 { margin: 0 0 1.5rem; }
 h2, p { margin-top: 0; }
-.auth-tabs { border-bottom: 1px solid #dce5ef; display: flex; gap: .5rem; margin-bottom: 1.25rem; }
-.tab-button { background: transparent; border-radius: .5rem .5rem 0 0; color: #64748b; }
-.tab-button.active { background: #edf5fc; color: #1769aa; }
 .auth-form { display: grid; gap: .45rem; }
 .auth-form label { font-size: .85rem; font-weight: 700; }
 .auth-form input, .auth-form select { border: 1px solid #c8d4e2; border-radius: .55rem; margin-bottom: .6rem; padding: .7rem; }
@@ -19,6 +16,8 @@ h2, p { margin-top: 0; }
 .message { border-radius: .5rem; margin: 1rem 0 0; padding: .7rem; }
 .error { background: #fff0f0; color: #a42626; }
 .success { background: #edf9f0; color: #20733a; }
+.auth-link { color: #64748b; font-size: .9rem; margin: 1.25rem 0 0; text-align: center; }
+.auth-link a { color: #1769aa; font-weight: 700; }
 .dashboard { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 500px; overflow: hidden; }
 .sidebar { background: #2d679f; color: #fff; padding: 1rem; }
 .role-image { border-bottom: 1px solid rgb(255 255 255 / 80%); display: block; height: auto; margin: 0 auto 1.25rem; max-width: 100%; }
