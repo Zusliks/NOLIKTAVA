@@ -5,7 +5,7 @@
       "name": "Launch Brave",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:1234",
+      "url": "http://localhost:9222",
       "webRoot": "${workspaceFolder}",
       "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe" 
     }
