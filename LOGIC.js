@@ -1,80 +1,112 @@
 import ROLES from "./ROLES.js";
 
-const loginForm = document.querySelector("#loginForm");
-const loginError = document.querySelector("#loginError");
-const dashboard = document.querySelector("#dashboard");
-const userName = document.querySelector("#userName");
-const sessionId = document.querySelector("#sessionId");
-const roleNavigation = document.querySelector("#roleNavigation");
-const logoutButton = document.querySelector("#logoutButton");
+const $ = (selector) => document.querySelector(selector);
+const authView = $("#authView");
+const dashboard = $("#dashboard");
+const loginForm = $("#loginForm");
+const registerForm = $("#registerForm");
+const authMessage = $("#authMessage");
+const roleSelect = $("#registerRole");
+const dbPromise = new Promise((resolve, reject) => {
+  const request = indexedDB.open("noliktava-db", 1);
+  request.onupgradeneeded = () => request.result.createObjectStore("users", { keyPath: "username" });
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
 
-const roleEntries = Object.entries(ROLES);
-
-function createRoleCard([roleKey, role]) {
-  const item = document.createElement("li");
-  const link = document.createElement("a");
-
-  link.className = "role-card";
-  link.href = role.image;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.dataset.role = roleKey;
-  link.innerHTML = `
-    <img src="${role.image}" alt="${role.label}" />
-    <strong>${role.label}</strong>
-    <span>${role.description}</span>
-  `;
-
-  item.append(link);
-  return item;}
-
-function renderRoles() {
-  roleNavigation.replaceChildren(...roleEntries.map(createRoleCard));}
-
-function showError(message) {
-  loginError.textContent = message;
-  loginError.hidden = false;}
-
-function clearError() {loginError.textContent = "";loginError.hidden = true;}
-
-function createSessionId() {return globalThis.crypto?.randomUUID?.() ?? `session-${Date.now()}`;}
-
-function logIn(username) {
-  userName.textContent = username;
-  sessionId.textContent = createSessionId();
-  dashboard.hidden = false;
-  loginForm.closest(".login-card").hidden = true;
-  saveSession(username, sessionId.textContent);
+async function dbTransaction(mode, callback) {
+  const database = await dbPromise;
+  return new Promise((resolve, reject) => {
+    const request = callback(database.transaction("users", mode).objectStore("users"));
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
 
-sessionStorage.setItem("sessionId", sessionId.textContent);
+async function hashPassword(password) {
+  const data = new TextEncoder().encode(password);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function showMessage(message, type = "error") {
+  authMessage.textContent = message;
+  authMessage.className = `message ${type}`;
+  authMessage.hidden = false;
+}
+
+function setAuthMode(mode) {
+  const login = mode === "login";
+  loginForm.hidden = !login;
+  registerForm.hidden = login;
+  $("#loginTab").classList.toggle("active", login);
+  $("#registerTab").classList.toggle("active", !login);
+  $("#loginTab").setAttribute("aria-selected", login);
+  $("#registerTab").setAttribute("aria-selected", !login);
+  authMessage.hidden = true;
+}
+
+function renderRoleOptions() {
+  roleSelect.replaceChildren(...Object.entries(ROLES).map(([key, role]) => new Option(role.label, key)));
+}
+
+function renderDashboard(user) {
+  const role = ROLES[user.role];
+  $("#userName").textContent = user.username;
+  $("#roleName").textContent = role.label;
+  $("#roleImage").src = role.image;
+  $("#roleImage").alt = `${role.label} izvēlne`;
+  $("#sidebarNavigation").replaceChildren(...role.menu.map((label) => {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = "#";
+    link.textContent = label;
+    link.dataset.action = label;
+    if (label === "Iziet") link.addEventListener("click", (event) => { event.preventDefault(); logOut(); });
+    item.append(link);
+    return item;
+  }));
+  authView.hidden = true;
+  dashboard.hidden = false;
+}
 
 function logOut() {
+  sessionStorage.removeItem("noliktava-user");
   dashboard.hidden = true;
-  loginForm.closest(".login-card").hidden = false;
+  authView.hidden = false;
   loginForm.reset();
-  sessionId.textContent = "-";
+  setAuthMode("login");
 }
 
- function Register() {
-  const username = new FormData(loginForm).get("username")?.toString().trim();
-  if (!username) {showError("Ievadiet lietotājvārdu.");return;}
-  const password = new FormData(loginForm).get("password")?.toString();
-  if (!password) {showError("Ievadiet paroli.");return;}
- }
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(loginForm);
+  const username = form.get("username").toString().trim().toLowerCase();
+  const password = form.get("password").toString();
+  const user = await dbTransaction("readonly", (store) => store.get(username));
+  if (!user || user.passwordHash !== await hashPassword(password)) return showMessage("Nepareizs lietotājvārds vai parole.");
+  sessionStorage.setItem("noliktava-user", JSON.stringify({ username: user.username, role: user.role }));
+  renderDashboard(user);
+});
 
- function Validate() {
-  if (!username == old.sessionId) {showError("Lietotājvārds jau eksistē.");return;}
-  if (!password == old.sessionId) {showError("Parole jau eksistē.");return;}
- }
-loginForm.addEventListener("submit", (event) => {event.preventDefault();clearError();
+registerForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(registerForm);
+  const username = form.get("username").toString().trim().toLowerCase();
+  const password = form.get("password").toString();
+  const role = form.get("role").toString();
+  if (username.length < 3 || password.length < 6) return showMessage("Lietotājvārdam vajag 3, parolei 6 simbolus.");
+  if (await dbTransaction("readonly", (store) => store.get(username))) return showMessage("Šāds lietotājs jau eksistē.");
+  const user = { username, role, passwordHash: await hashPassword(password) };
+  await dbTransaction("readwrite", (store) => store.add(user));
+  showMessage("Konts izveidots. Tagad varat pieslēgties.", "success");
+  registerForm.reset();
+  setAuthMode("login");
+});
 
-  const username = new FormData(loginForm).get("username")?.toString().trim();
-  const password = new FormData(loginForm).get("password")?.toString();
-
-  if (!username || !password) {showError("Ievadiet lietotājvārdu un paroli.");return;}
-
-  logIn(username);});
-
-logoutButton.addEventListener("click", logOut);
-renderRoles();
+$("#loginTab").addEventListener("click", () => setAuthMode("login"));
+$("#registerTab").addEventListener("click", () => setAuthMode("register"));
+$("#logoutButton").addEventListener("click", logOut);
+renderRoleOptions();
+const savedUser = JSON.parse(sessionStorage.getItem("noliktava-user") || "null");
+if (savedUser) renderDashboard(savedUser);

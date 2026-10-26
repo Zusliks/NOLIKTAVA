@@ -10,51 +10,49 @@
     </head>
     <body>
         <main class="app-shell">
-            <section class="login-card" aria-labelledby="page-title">
-                <h1 id="page-title">NOLIKTAVA</h1>
-
-                <form id="loginForm" novalidate>
-                    <label for="username">Lietotājvārds</label>
-                    <input type="text" id="username" name="username" autocomplete="username" required />
-
-                    <label for="password">Parole</label>
-                    <input type="password" id="password" name="password" autocomplete="current-password" required />
-
+            <section id="authView" class="auth-card" aria-labelledby="pageTitle">
+                <h1 id="pageTitle">NOLIKTAVA</h1>
+                <div class="auth-tabs" role="tablist" aria-label="Autorizācija">
+                    <button class="tab-button active" id="loginTab" type="button" role="tab" aria-selected="true">Pieslēgties</button>
+                    <button class="tab-button" id="registerTab" type="button" role="tab" aria-selected="false">Reģistrēties</button>
+                </div>
+                <form id="loginForm" class="auth-form" novalidate>
+                    <label for="loginUsername">Lietotājvārds</label>
+                    <input type="text" id="loginUsername" name="username" autocomplete="username" required />
+                    <label for="loginPassword">Parole</label>
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password" required />
                     <button type="submit">Pieslēgties</button>
                 </form>
-
-                <p id="loginError" class="message error-message" role="alert" hidden></p>
-                <p class="session-label">Sesijas ID: <output id="sessionId">-</output></p>
+                <form id="registerForm" class="auth-form" hidden novalidate>
+                    <label for="registerUsername">Lietotājvārds</label>
+                    <input type="text" id="registerUsername" name="username" autocomplete="username" required minlength="3" />
+                    <label for="registerPassword">Parole</label>
+                    <input type="password" id="registerPassword" name="password" autocomplete="new-password" required minlength="6" />
+                    <label for="registerRole">Loma</label>
+                    <select id="registerRole" name="role" required></select>
+                    <button type="submit">Izveidot kontu</button>
+                </form>
+                <p id="authMessage" class="message" role="alert" hidden></p>
             </section>
 
-
-
-                <form id="REGISTER" .hidden = true, novalidate>
-                    <label for="registerUsername">Lietotājvārds</label>
-                    <input type="text" id="registerUsername" name="registerUsername" autocomplete="username" required />
-                    <if (!username || !password) {showError("Ievadiet lietotājvārdu un paroli.");return;}>  </if>
-                    <div id="registerError" class="message error-message" role="alert" hidden></div>
-
-                    <label for="registerPassword">Parole</label>
-                    <input type="password" id="registerPassword" name="registerPassword" autocomplete="current-password" required />
-
-                    <button type="submit">Reģistrēties</button>
-                </form>
-
-
-
-            <section id="dashboard" class="dashboard" aria-labelledby="dashboard-title" hidden>
-                <header class="dashboard-header">
-                    <div>
-                        <p class="eyebrow">Vadību Panelis</p>
-                        <h2 id="dashboard-title">Sveicināti, <span id="userName"></span>!</h2>
-                    </div>
-                    <button id="logoutButton" class="button-secondary" type="button">Izrakstīties</button>
-                </header>
-
-                <nav aria-label="Lomas izvēlne">
-                    <ul id="roleNavigation" class="role-grid"></ul>
-                </nav>
+            <section id="dashboard" class="dashboard" hidden aria-labelledby="dashboardTitle">
+                <aside class="sidebar">
+                    <img id="roleImage" class="role-image" alt="" />
+                    <nav aria-label="Lomas izvēlne">
+                        <ul id="sidebarNavigation"></ul>
+                    </nav>
+                </aside>
+                <div class="dashboard-content">
+                    <header class="dashboard-header">
+                        <div>
+                            <p class="eyebrow">Vadības panelis</p>
+                            <h2 id="dashboardTitle">Sveicināti, <span id="userName"></span>!</h2>
+                            <p id="roleName" class="role-name"></p>
+                        </div>
+                        <button id="logoutButton" class="button-secondary" type="button">Iziet</button>
+                    </header>
+                    <p id="dashboardMessage">Izvēlieties darbību sānu izvēlnē.</p>
+                </div>
             </section>
         </main>
     </body>
