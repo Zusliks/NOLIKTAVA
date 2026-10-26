@@ -5,9 +5,10 @@
       "name": "Launch Brave",
       "type": "chrome",
       "request": "launch",
-      "url": "file://${workspaceFolder}/INDEX.html",
+      "url": "http://localhost:5500/INDEX.html",
       "webRoot": "${workspaceFolder}",
-      "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+      "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "preLaunchTask": "Start NOLIKTAVA server"
     }
   ]
 }

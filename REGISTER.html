@@ -17,7 +17,9 @@
                     <label for="registerPassword">Parole</label>
                     <input type="password" id="registerPassword" name="password" autocomplete="new-password" required minlength="6" />
                     <label for="registerRole">Loma</label>
-                    <select id="registerRole" name="role" required></select>
+                    <select id="registerRole" name="role" required>
+                        <option value="" selected disabled>Izvēlieties lomu</option>
+                    </select>
                     <button type="submit">Izveidot kontu</button>
                 </form>
                 <p id="registerMessage" class="message" role="alert" hidden></p>

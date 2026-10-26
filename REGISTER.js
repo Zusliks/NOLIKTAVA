@@ -12,14 +12,15 @@ function showMessage(message, type = "error") {
   registerMessage.hidden = false;
 }
 
-roleSelect.replaceChildren(...Object.entries(ROLES).map(([key, role]) => new Option(role.label, key)));
+for (const [key, role] of Object.entries(ROLES)) roleSelect.add(new Option(role.label, key));
 
 registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(registerForm);
   const username = form.get("username").toString().trim().toLowerCase();
   const password = form.get("password").toString();
-  const role = form.get("role").toString();
+  const role = form.get("role")?.toString();
+  if (!role || !ROLES[role]) return showMessage("Izvēlieties lomu.");
   if (username.length < 3 || password.length < 6) return showMessage("Lietotājvārdam vajag 3, parolei 6 simbolus.");
   if (await databaseRequest("readonly", (store) => store.get(username))) return showMessage("Šāds lietotājs jau eksistē.");
   const passwordHash = await hashPassword(password);

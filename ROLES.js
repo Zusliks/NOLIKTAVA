@@ -1,7 +1,7 @@
 const ROLES = {
-  ADMIN: { label: "Administrators", image: "IMG/ADMIN.png", menu: ["Sākums", "Pievienot produktu", "Pievienot lietotāju", "Lietotāji", "Iziet"] },
-  WORKER: { label: "Noliktavas darbinieks", image: "IMG/WORKER.png", menu: ["Sākums", "Veikt pasūtījumu", "Sagatavot atskaiti", "Iziet"] },
-  SORTER: { label: "Plauktu kārtotājs", image: "IMG/SORTER.png", menu: ["Sākums", "Izvietot preces", "Sagatavot atskaiti", "Datu ievade", "Iziet"] }
+  ADMIN: { label: "Administrators", menu: [["Sākums", "home"], ["Pievienot produktu", "add"], ["Pievienot lietotāju", "user-add"], ["Lietotāji", "users"], ["Iziet", "logout"]] },
+  WORKER: { label: "Noliktavas darbinieks", menu: [["Sākums", "home"], ["Veikt pasūtījumu", "order"], ["Sagatavot atskaiti", "report"], ["Iziet", "logout"]] },
+  SORTER: { label: "Plauktu kārtotājs", menu: [["Sākums", "home"], ["Izvietot preces", "shelf"], ["Sagatavot atskaiti", "report"], ["Datu ievade", "user"], ["Iziet", "logout"]] }
 };
 
 export default ROLES;
