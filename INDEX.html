@@ -24,12 +24,15 @@
 
             <section id="dashboard" class="dashboard" hidden aria-labelledby="dashboardTitle">
                 <aside class="sidebar">
-                    <div class="sidebar-brand"><span aria-hidden="true">⌂</span>STASH</div>
+                    <div class="sidebar-brand">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3zM8 20v-6h8v6M6 10h12" /></svg>
+                        <span>STASH</span>
+                    </div>
                     <nav aria-label="Lomas izvēlne">
                         <ul id="sidebarNavigation"></ul>
                     </nav>
                 </aside>
-                <div class="dashboard-content">
+                <div id="dashboardContent" class="dashboard-content">
                     <header class="dashboard-header">
                         <div>
                             <p class="eyebrow">Vadības panelis</p>
@@ -38,6 +41,7 @@
                         </div>
                         <button id="logoutButton" class="button-secondary" type="button">Iziet</button>
                     </header>
+                    <div id="dashboardView"></div>
                 </div>
             </section>
         </main>

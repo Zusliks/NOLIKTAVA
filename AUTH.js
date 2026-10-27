@@ -1,13 +1,18 @@
 const database = new Promise((resolve, reject) => {
-  const request = indexedDB.open("noliktava-db", 1);
-  request.onupgradeneeded = () => request.result.createObjectStore("users", { keyPath: "username" });
+  const request = indexedDB.open("noliktava-db", 2);
+  request.onupgradeneeded = () => {
+    const database = request.result;
+    for (const [name, key] of [["users", "username"], ["products", "id"], ["orders", "id"], ["locations", "id"]]) {
+      if (!database.objectStoreNames.contains(name)) database.createObjectStore(name, { keyPath: key, autoIncrement: key === "id" });
+    }
+  };
   request.onsuccess = () => resolve(request.result);
   request.onerror = () => reject(request.error);
 });
 
-export function databaseRequest(mode, operation) {
+export function databaseRequest(storeName, mode, operation) {
   return database.then((db) => new Promise((resolve, reject) => {
-    const request = operation(db.transaction("users", mode).objectStore("users"));
+    const request = operation(db.transaction(storeName, mode).objectStore(storeName));
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   }));
