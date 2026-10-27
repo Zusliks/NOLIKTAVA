@@ -1,7 +1,3 @@
-"""Local dev server for NOLIKTAVA: serves the FRONTEND folder.
-
-Usage: py BACKEND/SERVER.py [port]   (default port 5500)
-"""
 import socket
 import sys
 from functools import partial
@@ -13,7 +9,6 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 5500
 
 
 class Handler(SimpleHTTPRequestHandler):
-    # ES modules must be served as JavaScript, and no-cache avoids stale files after edits.
     extensions_map = {**SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript"}
 
     def end_headers(self):
@@ -22,12 +17,10 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 class Server(ThreadingHTTPServer):
-    # On Windows, address reuse lets a second server bind the same port and break the first.
     allow_reuse_address = False
 
 
 def port_in_use(port):
-    # Windows lets servers share a port, so check whether anything already answers on it.
     for family, address in ((socket.AF_INET, "127.0.0.1"), (socket.AF_INET6, "::1")):
         with socket.socket(family, socket.SOCK_STREAM) as probe:
             probe.settimeout(0.5)

@@ -1,7 +1,19 @@
 const ROLES = {
-  ADMIN: { label: "Administrators", menu: [["Sākums", "home", "home"], ["Pievienot produktu", "add", "addProduct"], ["Pievienot lietotāju", "user-add", "addUser"], ["Lietotāji", "users", "users"], ["Datu pārvaldība", "shelf", "data"], ["Pārskati", "report", "report"], ["Iziet", "logout", "logout"]] },
-  WORKER: { label: "Noliktavas darbinieks", menu: [["Sākums", "home", "home"], ["Preces", "shelf", "products"], ["Veikt pasūtījumu", "order", "orders"], ["Sagatavot atskaiti", "report", "report"], ["Iziet", "logout", "logout"]] },
-  SORTER: { label: "Plauktu kārtotājs", menu: [["Sākums", "home", "home"], ["Izvietot preces", "shelf", "locations"], ["Sagatavot atskaiti", "report", "report"], ["Datu ievade", "user", "locations"], ["Iziet", "logout", "logout"]] }
+  ADMIN: {
+    label: "Administrators",
+    tasks: ["Pārvalda lietotāju kontus un lomas", "Pievieno, rediģē un dzēš noliktavas datus", "Skata un ģenerē sistēmas pārskatus"],
+    menu: [["Sākums", "home", "home"], ["Lietotāji", "users", "users"], ["Noliktavas dati", "shelf", "data"], ["Pārskati", "report", "report"]]
+  },
+  WORKER: {
+    label: "Noliktavas darbinieks",
+    tasks: ["Pārvalda preču informāciju un pasūtījumus", "Maina pasūtījumu statusus", "Skata un ģenerē sistēmas pārskatus"],
+    menu: [["Sākums", "home", "home"], ["Preces", "box", "products"], ["Pasūtījumi", "order", "orders"], ["Pārskati", "report", "report"]]
+  },
+  SORTER: {
+    label: "Plauktu kārtotājs",
+    tasks: ["Skata preču informāciju", "Reģistrē un atjaunina preču izvietojumu plauktos", "Gatavo pārskatus par preču stāvokli"],
+    menu: [["Sākums", "home", "home"], ["Preces", "box", "stock"], ["Izvietojums", "pin", "locations"], ["Pārskati", "report", "report"]]
+  }
 };
 
 export default ROLES;
