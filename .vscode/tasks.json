@@ -5,20 +5,24 @@
       "label": "Start NOLIKTAVA server",
       "type": "shell",
       "command": "py",
-      "args": ["-m", "http.server", "5500"],
+      "args": ["-u", "BACKEND/SERVER.py", "5500"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "isBackground": true,
+      "runOptions": {
+        "instanceLimit": 1
+      },
       "problemMatcher": {
+        "owner": "noliktava-server",
         "pattern": {
-          "regexp": "^(.*)$",
+          "regexp": "^(Port \\d+ is already in use.*)$",
           "message": 1
         },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "Serving HTTP on",
-          "endsPattern": "Serving HTTP on"
+          "beginsPattern": "Serving HTTP on|is already in use",
+          "endsPattern": "Serving HTTP on|is already in use"
         }
       }
     }

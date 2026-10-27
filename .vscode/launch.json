@@ -6,7 +6,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5500/INDEX.html",
-      "webRoot": "${workspaceFolder}",
+      "webRoot": "${workspaceFolder}/FRONTEND",
       "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
       "preLaunchTask": "Start NOLIKTAVA server"
     }
