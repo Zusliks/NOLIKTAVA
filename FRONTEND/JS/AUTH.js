@@ -1,12 +1,28 @@
 const database = new Promise((resolve, reject) => {
-  const request = indexedDB.open("noliktava-db", 2);
+  if (!("indexedDB" in window)) {
+    reject(new Error("IndexedDB nav pieejams šajā pārlūkprogrammā."));
+    return;
+  }
+
+  let request;
+  try {
+    request = indexedDB.open("noliktava-db", 2);
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
   request.onupgradeneeded = () => {
     const database = request.result;
     for (const [name, key] of [["users", "username"], ["products", "id"], ["orders", "id"], ["locations", "id"]]) {
       if (!database.objectStoreNames.contains(name)) database.createObjectStore(name, { keyPath: key, autoIncrement: key === "id" });
     }
   };
-  request.onsuccess = () => resolve(request.result);
+  request.onsuccess = () => {
+    request.result.onversionchange = () => request.result.close();
+    resolve(request.result);
+  };
+  request.onblocked = () => reject(new Error("Datubāzi bloķē atvērta veca lietotnes cilne."));
   request.onerror = () => reject(request.error);
 });
 

@@ -10,10 +10,12 @@ const view = $("#dashboardView");
 const STATUSES = ["Jauns", "Apstrādē", "Pabeigts"];
 const ICONS = {
   home: "M3 10.5 12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6",
+  plus: "M12 5v14M5 12h14",
   users: "M16 20v-2a4 4 0 0 0-8 0v2M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M18 8a3 3 0 0 1 0 6M20 20v-2a4 4 0 0 0-2-3.5",
   shelf: "M4 4h16v16H4zM4 9h16M4 15h16M10 4v5M15 9v6M10 15v5",
   box: "M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10",
   pin: "M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4",
+  placement: "M4 4h10v16H4zM7 8h4M7 12h4M17 8l3 3-3 3M15 11h5",
   order: "M3 7h13v10H3zM16 10h3l3 3v4h-6M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4M18 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4",
   report: "M5 3h10l4 4v14H5zM15 3v5h5M8 12h8M8 16h8",
   logout: "M10 17l5-5-5-5M15 12H3M21 3v18"
@@ -122,7 +124,9 @@ function menuItem([label, iconName, action]) {
   link.dataset.action = action;
   link.onclick = (event) => {
     event.preventDefault();
-    action === "logout" ? logOut() : showView(action);
+    if (action === "logout") logOut();
+    else if (action === "register") window.location.href = "REGISTER.html";
+    else showView(action);
   };
   return el("li", {}, link);
 }
@@ -164,10 +168,15 @@ loginForm.addEventListener("submit", async (event) => {
     sessionStorage.setItem("noliktava-user", user.username);
     loginMessage.hidden = true;
     renderDashboard(user);
-  } catch {
-    showLoginMessage("Nevarēja piekļūt lietotāju datubāzei. Pārbaudiet, vai lapa tiek atvērta caur localhost.");
+  } catch (error) {
+    console.error("Login failed:", error);
+    showLoginMessage(error instanceof Error ? error.message : "Nevarēja piekļūt lietotāju datubāzei.");
   }
 });
 
 const savedUser = sessionStorage.getItem("noliktava-user");
-if (savedUser) databaseRequest("users", "readonly", (store) => store.get(savedUser)).then((user) => user && renderDashboard(user));
+if (savedUser) {
+  databaseRequest("users", "readonly", (store) => store.get(savedUser))
+    .then((user) => user && renderDashboard(user))
+    .catch((error) => console.error("Session restore failed:", error));
+}
