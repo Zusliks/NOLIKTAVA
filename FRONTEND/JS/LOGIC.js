@@ -1,182 +1,216 @@
 import ROLES from "./ROLES.js";
-import { databaseRequest, hashPassword } from "./AUTH.js";
+import { databaseRequest as db, hashPassword } from "./AUTH.js";
 
-const $ = (selector) => document.querySelector(selector);
-const loginView = $("#loginView");
-const dashboard = $("#dashboard");
+const $ = (s) => document.querySelector(s);
 const loginForm = $("#loginForm");
-const loginMessage = $("#loginMessage");
-const view = $("#dashboardView");
-const STATUSES = ["Jauns", "Apstrādē", "Pabeigts"];
+const msg = $("#loginMessage");
+const STAT = ["Jauns", "Apstrādē", "Pabeigts"];
+const STATE = ["Labā stāvoklī", "Bojāta", "Beigusies"];
 const ICONS = {
-  home: "M3 10.5 12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6",
+  home: "M4 10l8-6 8 6v10h-5v-6H9v6H4z",
   plus: "M12 5v14M5 12h14",
-  users: "M16 20v-2a4 4 0 0 0-8 0v2M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M18 8a3 3 0 0 1 0 6M20 20v-2a4 4 0 0 0-2-3.5",
-  shelf: "M4 4h16v16H4zM4 9h16M4 15h16M10 4v5M15 9v6M10 15v5",
-  box: "M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10",
-  pin: "M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4",
-  placement: "M4 4h10v16H4zM7 8h4M7 12h4M17 8l3 3-3 3M15 11h5",
-  order: "M3 7h13v10H3zM16 10h3l3 3v4h-6M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4M18 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4",
-  report: "M5 3h10l4 4v14H5zM15 3v5h5M8 12h8M8 16h8",
-  logout: "M10 17l5-5-5-5M15 12H3M21 3v18"
+  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21a8 8 0 0 1 16 0",
+  order: "M2 6h12v10H2zM14 9h4l4 4v3h-8M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4M18 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4",
+  report: "M3 21V4h10v17M13 9h8v12M2 21h20M6 8h4M6 12h4M6 16h4M16 13h2M16 17h2",
+  placement: "M3 5h18v14H3zM6 9h6M6 13h6M15 9h3v6h-3z",
+  logout: "M10 4H4v16h6M14 8l4 4-4 4M18 12H9"
 };
-let currentUser = null;
-let currentAction = "home";
+let me = null, page = "home", box;
 
-const getAll = (store) => databaseRequest(store, "readonly", (s) => s.getAll());
-const save = (store, item) => databaseRequest(store, "readwrite", (s) => s.put(item));
-const remove = (store, key) => databaseRequest(store, "readwrite", (s) => s.delete(key));
-const menu = () => ROLES[currentUser.role].menu;
-const refresh = () => showView(currentAction);
+const all = (t) => db(t, "readonly", (s) => s.getAll());
+const put = (t, x) => db(t, "readwrite", (s) => s.put(x));
+const del = (t, k) => db(t, "readwrite", (s) => s.delete(k));
+const roleList = () => Object.entries(ROLES).map(([k, r]) => [k, r.label]);
+const again = () => go(page);
 
-function el(tag, props = {}, ...children) {
-  const node = Object.assign(document.createElement(tag), props);
-  node.append(...children);
-  return node;
+function h(tag, props = {}, ...kids) {
+  const n = Object.assign(document.createElement(tag), props);
+  n.append(...kids);
+  return n;
 }
 
-const button = (textContent, onclick) => el("button", { type: "button", className: "list-action", textContent, onclick });
-const select = (options, value) => el("select", {}, ...options.map(([key, label]) => new Option(label, key, false, key === value)));
+const btn = (text, fn) => h("button", { type: "button", className: "list-action", textContent: text, onclick: async () => { await fn(); again(); } });
+const pick = (opts, val) => h("select", {}, ...(opts.length ? opts : [["", "Nav preču"]]).map(([v, t]) => new Option(t, v, false, v == val)));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
-function list(items, row) {
-  view.append(el("ul", { className: "data-list" }, ...items.map((item) => el("li", {}, ...row(item)))));
+function rows(items, fn) {
+  if (!items.length) return box.append(h("p", { className: "empty", textContent: "Nav ierakstu." }));
+  box.append(h("ul", { className: "data-list" }, ...items.map((x) => h("li", {}, ...fn(x)))));
 }
+const sub = (t) => box.append(h("h4", { textContent: t }));
 
-function form(fields, textContent, submit) {
-  const node = el("form", { className: "data-form" }, ...fields.map(([name, type, placeholder]) => el("input", { name, type, placeholder, required: true, min: 0 })), el("button", { type: "submit", textContent }));
-  node.onsubmit = async (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(node));
-    for (const key in data) data[key] = key === "quantity" ? Number(data[key]) : data[key].trim();
-    await submit(data);
-    refresh();
+function form(fields, label, done) {
+  const f = h("form", { className: "data-form" });
+  for (const [name, hint, type] of fields) {
+    const el = Array.isArray(type) ? pick(type) : h("input", { type, placeholder: hint, min: 0 });
+    el.name = name;
+    el.required = true;
+    f.append(el);
+  }
+  f.append(h("button", { type: "submit", textContent: label }));
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(f));
+    for (const k in d) if (k == "quantity") d[k] = +d[k]; else if (k != "password") d[k] = d[k].trim();
+    const err = await done(d);
+    if (typeof err == "string") return alert(err);
+    again();
   };
-  view.append(node);
+  box.append(f);
 }
 
-function icon(name) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  svg.setAttribute("class", "menu-icon");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  path.setAttribute("d", ICONS[name]);
-  svg.append(path);
-  return svg;
-}
-
-async function editQuantity(product) {
-  const value = prompt("Daudzums:", product.quantity);
-  if (/^\d+$/.test(value ?? "")) await save("products", { ...product, quantity: Number(value) });
-  refresh();
-}
-
-async function products(canDelete) {
-  form([["name", "text", "Preces nosaukums"], ["quantity", "number", "Daudzums"]], "Pievienot", (data) => save("products", data));
-  list(await getAll("products"), (product) => [
-    `${product.name} — ${product.quantity}`,
-    ...(canDelete ? [button("Dzēst", () => remove("products", product.id).then(refresh))] : []),
-    button("Rediģēt", () => editQuantity(product))
+async function products(edit, drop) {
+  rows(await all("products"), (p) => [
+    `${p.name}: ${p.quantity} gab.`,
+    ...(drop ? [btn("Dzēst", () => del("products", p.id))] : []),
+    ...(edit ? [btn("Rediģēt", () => {
+      const v = prompt("Daudzums:", p.quantity);
+      if (/^\d+$/.test(v ?? "")) return put("products", { ...p, quantity: +v });
+    })] : [])
   ]);
 }
 
-const views = {
-  home: () => list(ROLES[currentUser.role].tasks, (task) => [task]),
-  users: async () => {
-    view.append(el("a", { href: "REGISTER.html", textContent: "+ Pievienot lietotāju" }));
-    list(await getAll("users"), (user) => {
-      if (user.username === currentUser.username) return [`${user.username} — ${ROLES[user.role].label} (jūs)`];
-      const role = select(Object.entries(ROLES).map(([key, r]) => [key, r.label]), user.role);
-      return [user.username, role, button("Dzēst", () => remove("users", user.username).then(refresh)), button("Saglabāt", () => save("users", { ...user, role: role.value }).then(refresh))];
+async function report() {
+  const [prod, orders, locs] = await Promise.all(["products", "orders", "locations"].map((t) => all(t)));
+  const shelf = (p) => locs.find((l) => l.product == p.name)?.shelf || "nav plauktā";
+  sub("Preču stāvoklis");
+  rows(prod, (p) => [`${p.name}: ${p.quantity} gab., ${shelf(p)}, ${p.state || STATE[0]}`]);
+  sub("Pasūtījumi");
+  rows(STAT, (s) => [`${s}: ${orders.filter((o) => o.status == s).length}`]);
+  box.append(h("button", { type: "button", className: "list-action", textContent: "Drukāt", onclick: () => {
+    const td = (r) => `<tr>${r.map((x) => `<td>${esc(x)}</td>`).join("")}</tr>`;
+    const w = open("", "_blank");
+    w.document.write(`<!doctype html><meta charset="utf-8"><title>Noliktavas atskaite</title>
+<style>body{font-family:system-ui,sans-serif;margin:2rem;color:#172033}table{border-collapse:collapse;width:100%;margin-bottom:2rem}td,th{border:1px solid #c8d4e2;padding:.5rem;text-align:left}th{background:#eef3f8}button{padding:.6rem 1rem;margin-bottom:1rem}@media print{button{display:none}}</style>
+<button onclick="print()">Drukāt</button>
+<h1>Noliktavas atskaite</h1>
+<p>${new Date().toLocaleString("lv-LV")}<br>Sagatavoja: ${esc(me.username)} (${ROLES[me.role].label})</p>
+<h2>Preces</h2>
+<table><tr><th>Prece</th><th>Daudzums</th><th>Plaukts</th><th>Stāvoklis</th></tr>${prod.map((p) => td([p.name, p.quantity, shelf(p), p.state || STATE[0]])).join("")}</table>
+<h2>Pasūtījumi</h2>
+<table><tr><th>Prece</th><th>Daudzums</th><th>Statuss</th></tr>${orders.map((o) => td([o.product, o.quantity, o.status])).join("")}</table>
+<p>Kopā: ${prod.length} preces, ${orders.length} pasūtījumi (${STAT.map((s) => `${s}: ${orders.filter((o) => o.status == s).length}`).join(", ")})</p>`);
+    w.document.close();
+  } }));
+}
+
+const pages = {
+  async home() {
+    rows(ROLES[me.role].tasks, (t) => [t]);
+    if (me.role == "ADMIN") return report();
+    sub("Preces");
+    await products(me.role == "WORKER");
+  },
+  async data() {
+    form([["name", "Preces nosaukums", "text"], ["quantity", "Daudzums", "number"]], "Pievienot", async (d) => { await put("products", d); });
+    await products(true, true);
+  },
+  register() {
+    form([["username", "Lietotājvārds", "text"], ["password", "Parole", "password"], ["role", "", roleList()]], "Izveidot", async (d) => {
+      d.username = d.username.toLowerCase();
+      if (d.username.length < 3 || d.password.length < 6) return "Lietotājvārdam vajag 3, parolei 6 simbolus.";
+      if (await db("users", "readonly", (s) => s.get(d.username))) return "Šāds lietotājs jau eksistē.";
+      await put("users", { username: d.username, role: d.role, passwordHash: await hashPassword(d.password) });
+      alert("Lietotājs izveidots.");
     });
   },
-  data: () => products(true),
-  products: () => products(false),
-  stock: async () => list(await getAll("products"), (product) => [`${product.name} — ${product.quantity}`]),
-  orders: async () => {
-    form([["product", "text", "Prece"], ["quantity", "number", "Daudzums"]], "Izveidot pasūtījumu", (data) => save("orders", { ...data, status: "Jauns" }));
-    list(await getAll("orders"), (order) => {
-      const status = select(STATUSES.map((s) => [s, s]), order.status);
-      return [`${order.product} (${order.quantity})`, status, button("Saglabāt", () => save("orders", { ...order, status: status.value }).then(refresh))];
+  async users() {
+    rows(await all("users"), (u) => {
+      if (u.username == me.username) return [`${u.username} (jūs), ${ROLES[u.role].label}`];
+      const r = pick(roleList(), u.role);
+      return [u.username, r, btn("Dzēst", () => del("users", u.username)), btn("Saglabāt", () => put("users", { ...u, role: r.value }))];
     });
   },
-  locations: async () => {
-    const locations = await getAll("locations");
-    form([["product", "text", "Prece"], ["shelf", "text", "Plaukta vieta"]], "Saglabāt", (data) => save("locations", { ...locations.find((l) => l.product === data.product), ...data }));
-    list(locations, (location) => [`${location.product} — ${location.shelf}`]);
+  async orders() {
+    const prod = await all("products");
+    form([["product", "", prod.map((p) => [p.name, p.name])], ["quantity", "Daudzums", "number"]], "Pasūtīt", async (d) => { await put("orders", { ...d, status: "Jauns" }); });
+    rows(await all("orders"), (o) => {
+      const s = pick(STAT.map((x) => [x, x]), o.status);
+      return [`${o.product} (${o.quantity} gab.)`, s, btn("Saglabāt", () => put("orders", { ...o, status: s.value }))];
+    });
   },
-  report: async () => {
-    const [products, orders, locations] = await Promise.all(["products", "orders", "locations"].map((store) => getAll(store)));
-    list(products, (p) => [`${p.name} — ${p.quantity} gab. — ${locations.find((l) => l.product === p.name)?.shelf || "nav izvietota"}`]);
-    list(STATUSES, (s) => [`Pasūtījumi "${s}": ${orders.filter((o) => o.status === s).length}`]);
+  async locations() {
+    const [prod, locs] = await Promise.all([all("products"), all("locations")]);
+    form([["product", "", prod.map((p) => [p.name, p.name])], ["shelf", "Plaukta vieta", "text"]], "Izvietot", async (d) => { await put("locations", { ...locs.find((l) => l.product == d.product), ...d }); });
+    rows(locs, (l) => [`${l.product}: ${l.shelf}`]);
+  },
+  report,
+  async stock() {
+    const prod = await all("products");
+    form([["product", "", prod.map((p) => [p.id, p.name])], ["state", "", STATE.map((x) => [x, x])]], "Saglabāt", async (d) => {
+      const p = prod.find((x) => x.id == d.product);
+      if (p) await put("products", { ...p, state: d.state });
+    });
+    rows(prod, (p) => {
+      const s = pick(STATE.map((x) => [x, x]), p.state || STATE[0]);
+      return [`${p.name}: ${p.quantity} gab.`, s, btn("Saglabāt", () => put("products", { ...p, state: s.value }))];
+    });
   }
 };
 
-function showView(action) {
-  const [label, , key] = menu().find((item) => item[2] === action) || menu()[0];
-  currentAction = key;
-  view.replaceChildren(el("h3", { textContent: label }));
-  document.querySelectorAll("#sidebarNavigation a").forEach((a) => a.classList.toggle("active", a.dataset.action === key));
-  views[key]();
+function go(key) {
+  const menu = ROLES[me.role].menu;
+  const [label, , k] = menu.find((m) => m[2] == key) || menu[0];
+  page = k;
+  box = h("div");
+  $("#dashboardView").replaceChildren(h("h3", { textContent: label }), box);
+  document.querySelectorAll("#sidebarNavigation a").forEach((a) => a.classList.toggle("active", a.dataset.go == k));
+  pages[k]();
 }
 
-function menuItem([label, iconName, action]) {
-  const link = el("a", { href: "#" }, icon(iconName), label);
-  link.dataset.action = action;
-  link.onclick = (event) => {
-    event.preventDefault();
-    if (action === "logout") logOut();
-    else if (action === "register") window.location.href = "REGISTER.html";
-    else showView(action);
-  };
-  return el("li", {}, link);
+function link([label, ic, k]) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "menu-icon");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.innerHTML = `<path d="${ICONS[ic]}"/>`;
+  const a = h("a", { href: "#" }, svg, label);
+  a.dataset.go = k;
+  a.onclick = (e) => { e.preventDefault(); k == "logout" ? logout() : go(k); };
+  return h("li", {}, a);
 }
 
-function renderDashboard(user) {
+function enter(user) {
   if (!ROLES[user.role]) return;
-  currentUser = user;
+  me = user;
   $("#userName").textContent = user.username;
   $("#roleName").textContent = ROLES[user.role].label;
-  $("#sidebarNavigation").replaceChildren(...[...menu(), ["Iziet", "logout", "logout"]].map(menuItem));
-  showView("home");
-  loginView.hidden = true;
-  dashboard.hidden = false;
+  $("#sidebarNavigation").replaceChildren(...[...ROLES[user.role].menu, ["Iziet", "logout", "logout"]].map(link));
+  go("home");
+  $("#loginView").hidden = true;
+  $("#dashboard").hidden = false;
 }
 
-function logOut() {
+function logout() {
   sessionStorage.removeItem("noliktava-user");
-  currentUser = null;
-  dashboard.hidden = true;
-  loginView.hidden = false;
+  me = null;
+  $("#dashboard").hidden = true;
+  $("#loginView").hidden = false;
   loginForm.reset();
 }
 
-function showLoginMessage(message) {
-  loginMessage.textContent = message;
-  loginMessage.className = "message error";
-  loginMessage.hidden = false;
+function oops(text) {
+  msg.textContent = text;
+  msg.className = "message error";
+  msg.hidden = false;
 }
 
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
   try {
-    const form = new FormData(loginForm);
-    const username = form.get("username")?.toString().trim().toLowerCase();
-    const password = form.get("password")?.toString();
-    if (!username || !password) return showLoginMessage("Ievadiet lietotājvārdu un paroli.");
-    const user = await databaseRequest("users", "readonly", (store) => store.get(username));
-    if (!user || user.passwordHash !== await hashPassword(password)) return showLoginMessage("Nepareizs lietotājvārds vai parole.");
+    const f = new FormData(loginForm);
+    const name = f.get("username")?.toString().trim().toLowerCase();
+    const pass = f.get("password")?.toString();
+    if (!name || !pass) return oops("Ievadiet lietotājvārdu un paroli.");
+    const user = await db("users", "readonly", (s) => s.get(name));
+    if (!user || user.passwordHash !== await hashPassword(pass)) return oops("Nepareizs lietotājvārds vai parole.");
     sessionStorage.setItem("noliktava-user", user.username);
-    loginMessage.hidden = true;
-    renderDashboard(user);
-  } catch (error) {
-    console.error("Login failed:", error);
-    showLoginMessage(error instanceof Error ? error.message : "Nevarēja piekļūt lietotāju datubāzei.");
+    msg.hidden = true;
+    enter(user);
+  } catch (err) {
+    console.error(err);
+    oops("Nevarēja piekļūt lietotāju datubāzei.");
   }
 });
 
-const savedUser = sessionStorage.getItem("noliktava-user");
-if (savedUser) {
-  databaseRequest("users", "readonly", (store) => store.get(savedUser))
-    .then((user) => user && renderDashboard(user))
-    .catch((error) => console.error("Session restore failed:", error));
-}
+const saved = sessionStorage.getItem("noliktava-user");
+if (saved) db("users", "readonly", (s) => s.get(saved)).then((u) => u && enter(u)).catch(console.error);

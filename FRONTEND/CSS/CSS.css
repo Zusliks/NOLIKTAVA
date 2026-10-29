@@ -5,7 +5,7 @@ body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }
 button { border: 0; border-radius: .55rem; cursor: pointer; font-weight: 700; padding: .7rem .9rem; }
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #91c8ff; outline-offset: 2px; }
-.app-shell { margin: 0 auto; max-width: 1080px; padding: 2rem 1rem; }
+.app-shell { margin: 0 auto; max-width: 1400px; padding: 1.5rem 1rem; }
 .auth-card, .dashboard { background: #fff; border: 1px solid #dce5ef; border-radius: 1rem; box-shadow: 0 1.5rem 4rem rgb(26 47 74 / 12%); }
 .auth-card { margin: 0 auto; max-width: 420px; padding: 2rem; }
 h1 { margin: 0 0 1.5rem; }
@@ -19,7 +19,7 @@ h2, p { margin-top: 0; }
 .success { background: #edf9f0; color: #20733a; }
 .auth-link { color: #64748b; font-size: .9rem; margin: 1.25rem 0 0; text-align: center; }
 .auth-link a { color: #1769aa; font-weight: 700; }
-.dashboard { display: grid; grid-template-columns: 297px minmax(0, 1fr); min-height: 500px; overflow: hidden; }
+.dashboard { display: grid; grid-template-columns: 297px minmax(0, 1fr); min-height: calc(100vh - 3rem); overflow: hidden; }
 .sidebar { background: #2d679f; color: #fff; padding: 16px; }
 .sidebar-brand { align-items: center; border-bottom: 1px solid rgb(255 255 255 / 90%); display: flex; font-family: Georgia, "Times New Roman", serif; font-size: 1.85rem; font-weight: 700; gap: .1rem; height: 56px; justify-content: center; letter-spacing: -.08em; margin-bottom: 24px; }
 .sidebar-brand svg { fill: none; height: 27px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; width: 27px; }
@@ -29,10 +29,9 @@ h2, p { margin-top: 0; }
 .menu-icon { fill: none; flex: 0 0 1.25rem; height: 1.35rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; width: 1.35rem; }
 .sidebar a:hover, .sidebar a.active { background: rgb(255 255 255 / 14%); border-radius: .4rem; }
 .sidebar a.active { background: rgb(255 255 255 / 24%); }
-.sidebar li:last-child { border-top: 1px solid rgb(255 255 255 / 30%); margin-top: 1rem; padding-top: 1rem; }
 .dashboard-content { min-width: 0; padding: 2rem; }
 .data-form { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
-.data-form input { border: 1px solid #c8d4e2; border-radius: .4rem; padding: .65rem; }
+.data-form input, .data-form select { background: #fff; min-width: 12rem; border: 1px solid #c8d4e2; border-radius: .4rem; padding: .65rem; }
 .data-form button { background: #1769aa; color: #fff; }
 .data-list { list-style: none; margin: 1rem 0; padding: 0; }
 .data-list li { border-bottom: 1px solid #e4eaf1; padding: .65rem 0; }
@@ -44,3 +43,4 @@ h2, p { margin-top: 0; }
 .role-name { color: #64748b; letter-spacing: normal; }
 @media (max-width: 680px) { .app-shell { padding: 1rem .5rem; } .dashboard { grid-template-columns: 210px minmax(0, 1fr); } .dashboard-content { padding: 1rem; } .dashboard-header { flex-direction: column; } h2 { font-size: 1.2rem; white-space: nowrap; } .sidebar a { font-size: 1rem; } }
 @media (max-width: 480px) { .dashboard { grid-template-columns: 160px minmax(0, 1fr); } .sidebar { padding: .5rem; } .sidebar a { font-size: .82rem; gap: .5rem; min-height: 42px; padding: .5rem .25rem; } .sidebar-brand { font-size: 1.35rem; margin-bottom: 1rem; padding-bottom: 1rem; } .sidebar-brand svg { height: 22px; width: 22px; } .dashboard-content { padding: .75rem; } }
+.empty { color: #64748b; }

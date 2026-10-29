@@ -8,6 +8,7 @@
       "url": "http://localhost:5500/INDEX.html",
       "webRoot": "${workspaceFolder}/FRONTEND",
       "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "runtimeArgs": ["--disable-features=AIChat,AIChatHistory,BraveAIChatAgentProfile"],
       "preLaunchTask": "Start NOLIKTAVA server"
     }
   ]

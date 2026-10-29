@@ -1,34 +1,36 @@
-import ROLES from "./ROLES.js";
-import { databaseRequest, hashPassword } from "./AUTH.js";
+import { databaseRequest as db, hashPassword } from "./AUTH.js";
 
-const $ = (selector) => document.querySelector(selector);
-const registerForm = $("#registerForm");
-const registerMessage = $("#registerMessage");
-const roleSelect = $("#registerRole");
+const $ = (s) => document.querySelector(s);
+const form = $("#registerForm");
+const msg = $("#registerMessage");
 
-function showMessage(message, type = "error") {
-  registerMessage.textContent = message;
-  registerMessage.className = `message ${type}`;
-  registerMessage.hidden = false;
+function say(text, type = "error") {
+  msg.textContent = text;
+  msg.className = `message ${type}`;
+  msg.hidden = false;
 }
 
-for (const [key, role] of Object.entries(ROLES)) roleSelect.add(new Option(role.label, key));
+const count = await db("users", "readonly", (s) => s.count());
+if (count) {
+  form.hidden = true;
+  say("Jaunus lietotājus pievieno administrators.");
+}
+$("#registerRole").add(new Option("Administrators", "ADMIN", true, true));
 
-registerForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
   try {
-    const form = new FormData(registerForm);
-    const username = form.get("username")?.toString().trim().toLowerCase();
-    const password = form.get("password")?.toString();
-    const role = form.get("role")?.toString();
-    if (!role || !ROLES[role]) return showMessage("Izvēlieties lomu.");
-    if (!username || !password || username.length < 3 || password.length < 6) return showMessage("Lietotājvārdam vajag 3, parolei 6 simbolus.");
-    if (await databaseRequest("users", "readonly", (store) => store.get(username))) return showMessage("Šāds lietotājs jau eksistē.");
+    const f = new FormData(form);
+    const username = f.get("username")?.toString().trim().toLowerCase();
+    const password = f.get("password")?.toString();
+    if (!username || !password || username.length < 3 || password.length < 6) return say("Lietotājvārdam vajag 3, parolei 6 simbolus.");
+    if (await db("users", "readonly", (s) => s.count())) return say("Jaunus lietotājus pievieno administrators.");
     const passwordHash = await hashPassword(password);
-    await databaseRequest("users", "readwrite", (store) => store.add({ username, role, passwordHash }));
-    registerForm.reset();
-    showMessage("Konts izveidots. Tagad varat pieslēgties.", "success");
+    await db("users", "readwrite", (s) => s.add({ username, role: "ADMIN", passwordHash }));
+    form.reset();
+    form.hidden = true;
+    say("Administratora konts izveidots. Tagad varat pieslēgties.", "success");
   } catch {
-    showMessage("Nevarēja saglabāt kontu. Pārbaudiet, vai lapa tiek atvērta caur localhost.");
+    say("Nevarēja saglabāt kontu.");
   }
 });
